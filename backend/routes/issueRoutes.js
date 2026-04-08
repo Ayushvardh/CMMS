@@ -1,5 +1,6 @@
 import express from "express";
 import Issue from "../models/Issue.js";
+console.log("✅ Issue routes loaded");
 
 const router = express.Router();
 

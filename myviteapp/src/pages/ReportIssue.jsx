@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { addOrder } from "../utils/storage";
-import { addNotification } from "../utils/notificationStorage"; // 👈 NEW
+import { addNotification } from "../utils/notificationStorage";
 
 import keyboardImg from "../assets/keyboard.png";
 import mouseImg from "../assets/mouse.png";
