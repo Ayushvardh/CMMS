@@ -8,44 +8,44 @@ function Login() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = () => {
-    // Basic validation
+  // ✅ UPDATED LOGIN (BACKEND BASED)
+  const handleLogin = async () => {
     if (!username || !password) {
       alert("Please fill all fields");
       return;
     }
 
-    // Demo users
-    let role = null;
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ username, password })
+      });
 
-    if (username === "admin" && password === "1234") {
-      role = "admin";
-    } else if (username === "tech" && password === "1234") {
-      role = "technician";   // ✅ keep this same
-    } else if (username === "user" && password === "1234") {
-      role = "user";
-    }
+      const data = await res.json();
 
-    if (role) {
-      const user = {
-        username,
-        role,
-        loggedIn: true,
-      };
+      if (res.ok) {
+        const user = data.user;
 
-      localStorage.setItem("cmms_user", JSON.stringify(user));
+        localStorage.setItem("cmms_user", JSON.stringify(user));
 
-      // ✅ FIXED ROLE-BASED REDIRECT
-      if (role === "admin") {
-        window.location.href = "/admin";
-      } else if (role === "technician") {
-        window.location.href = "/technician";   // ✅ NEW
+        // ✅ use navigate (NOT window.location)
+        if (user.role === "admin") {
+          navigate("/admin");
+        } else if (user.role === "technician") {
+          navigate("/technician");
+        } else {
+          navigate("/");
+        }
+
       } else {
-        window.location.href = "/";
+        alert(data.message || "Invalid credentials ❌");
       }
 
-    } else {
-      alert("Invalid username or password ❌");
+    } catch (err) {
+      alert("Server error ❌");
     }
   };
 
@@ -71,6 +71,11 @@ function Login() {
         />
 
         <button onClick={handleLogin}>Sign In</button>
+
+        {/* ✅ FORGOT PASSWORD */}
+        <p>
+          <a href="/forgot-password">Forgot Password?</a>
+        </p>
 
         <p className="login-note">
           Don’t have an account? <a href="/signup">Sign Up</a>

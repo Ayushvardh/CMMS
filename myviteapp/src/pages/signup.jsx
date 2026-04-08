@@ -3,30 +3,23 @@ import { Link } from "react-router-dom";
 import "./signup.css";
 
 export default function Signup() {
-
   const [form, setForm] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
-    role: "user",   // default selected role
+    role: "user",
   });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSignup = (e) => {
+  const handleSignup = async (e) => {
     e.preventDefault();
 
-    // Basic validation
     if (!form.username || !form.email || !form.password || !form.confirmPassword) {
       alert("Please fill all fields");
-      return;
-    }
-
-    if (form.password.length < 4) {
-      alert("Password must be at least 4 characters");
       return;
     }
 
@@ -35,24 +28,28 @@ export default function Signup() {
       return;
     }
 
-    if (!form.email.includes("@")) {
-      alert("Please enter a valid email");
-      return;
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        localStorage.setItem("cmms_user", JSON.stringify(data.user));
+        alert("Signup successful ✅");
+        window.location.href = "/";
+      } else {
+        alert(data.message);
+      }
+
+    } catch (err) {
+      alert("Error signing up");
     }
-
-    // Create user object
-    const user = {
-      username: form.username,
-      email: form.email,
-      role: form.role,   // <-- selected role
-      loggedIn: true
-    };
-
-    localStorage.setItem("cmms_user", JSON.stringify(user));
-
-    alert("Signup successful ✅ You are now logged in.");
-
-    window.location.href = "/";
   };
 
   return (
@@ -77,7 +74,6 @@ export default function Signup() {
             onChange={handleChange}
           />
 
-          {/* ROLE DROPDOWN */}
           <select name="role" value={form.role} onChange={handleChange}>
             <option value="user">User</option>
             <option value="technician">Technician</option>

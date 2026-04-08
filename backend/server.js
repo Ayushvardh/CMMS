@@ -5,26 +5,34 @@ import dotenv from "dotenv";
 
 import issueRoutes from "./routes/issueRoutes.js";
 import technicianRoutes from "./routes/technicianRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
 
-const app = express();
+console.log("🚀 THIS SERVER FILE IS RUNNING");
+
+const app = express();   // ✅ FIRST
 
 // middleware
 app.use(cors());
 app.use(express.json());
 
-// routes
-app.use("/api/issues", issueRoutes);
+// test route
+app.get("/hello", (req, res) => {
+  res.send("Hello working");
+});
 
-// connect mongodb
+// routes (ALL app.use should be here)
+app.use("/api/issues", issueRoutes);
+app.use("/api/technicians", technicianRoutes);
+app.use("/api/auth", authRoutes);   // ✅ HERE (correct place)
+
+// DB
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => {
-    console.log("❌ MongoDB ERROR:", err);
-  });
+  .catch(err => console.log("❌ MongoDB ERROR:", err));
 
-// server start
+// server
 app.listen(process.env.PORT, () => {
   console.log(`🚀 Server running on port ${process.env.PORT}`);
 });

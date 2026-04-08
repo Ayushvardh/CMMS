@@ -1,32 +1,130 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getProfile, updateProfile } from "../utils/profileStorage";
 import "./dashboard.css";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const existing = getProfile();
+  const user = JSON.parse(localStorage.getItem("cmms_user"));
 
-  const [name, setName] = useState(existing.name || "");
-  const [email, setEmail] = useState(existing.email || "");
-  const [dept, setDept] = useState(existing.department || "");
-  const [photo, setPhoto] = useState(existing.photo || "");
+  if (!user) {
+    return <h2>Please login first</h2>;
+  }
 
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [dept, setDept] = useState("");
+  const [photo, setPhoto] = useState("");
+
+  // ✅ FETCH PROFILE
+  useEffect(() => {
+    fetch(`http://localhost:5000/api/auth/profile/${user._id}`)
+      .then(res => res.json())
+      .then(data => {
+        console.log("PHOTO FROM DB:", data.photo); // debug
+
+        setName(data.username || "");
+        setEmail(data.email || "");
+        setDept(data.department || "");
+        setPhoto(data.photo || "");
+      });
+  }, []);
+
+  // ✅ PHOTO UPLOAD
   const onPhotoChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // store image in localStorage as base64 (good for demo)
     const reader = new FileReader();
     reader.onload = () => {
-      setPhoto(String(reader.result));
+      setPhoto(reader.result); // base64 image
     };
     reader.readAsDataURL(file);
   };
 
-  const save = () => {
-    updateProfile({ name, email, department: dept, photo });
-    navigate("/dashboard");
+  // ✅ SAVE PROFILE (FIXED 🔥)
+  const save = async () => {
+    const res = await fetch(`http://localhost:5000/api/auth/profile/${user._id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username: name,
+        email,
+        department: dept,
+        photo
+      }),
+    });
+
+    const updatedUser = await res.json();
+
+    if (res.ok) {
+      // ✅ update localStorage
+      localStorage.setItem("cmms_user", JSON.stringify(updatedUser));
+
+      // ✅ FORCE UI UPDATE (THIS FIXES YOUR ISSUE)
+      setPhoto(updatedUser.photo);
+
+      alert("✅ Profile saved successfully");
+    } else {
+      alert("❌ Save failed");
+    }
+  };
+
+  // ✅ DELETE ACCOUNT
+  const deleteAccount = async () => {
+    const password = prompt("Enter password to delete account:");
+
+    const res = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ username: user.username, password })
+    });
+
+    if (!res.ok) {
+      alert("Wrong password ❌");
+      return;
+    }
+
+    const delRes = await fetch(`http://localhost:5000/api/auth/profile/${user._id}`, {
+      method: "DELETE",
+    });
+
+    if (delRes.ok) {
+      alert("✅ Account deleted successfully");
+      localStorage.clear();
+      navigate("/signup");
+    } else {
+      alert("❌ Delete failed");
+    }
+  };
+
+  // ✅ DEACTIVATE (TECHNICIAN)
+  const deactivate = async () => {
+    const password = prompt("Enter password to deactivate:");
+
+    const res = await fetch("http://localhost:5000/api/auth/login", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ username: user.username, password })
+    });
+
+    if (!res.ok) {
+      alert("Wrong password ❌");
+      return;
+    }
+
+    const deactRes = await fetch(`http://localhost:5000/api/auth/profile/${user._id}/deactivate`, {
+      method: "PUT",
+    });
+
+    if (deactRes.ok) {
+      alert("Account deactivated");
+
+      // ✅ logout immediately
+      localStorage.clear();
+      navigate("/login");
+    } else {
+      alert("Deactivate failed");
+    }
   };
 
   return (
@@ -34,46 +132,56 @@ export default function Profile() {
       <div className="dash-top">
         <div className="dash-title">
           <h2>My Profile</h2>
-          <p>Upload photo and manage basic account details.</p>
         </div>
 
         <button className="dash-btn" onClick={() => navigate(-1)}>← Back</button>
       </div>
 
       <div className="dash-row">
+
+        {/* LEFT PANEL */}
         <div className="dash-panel">
           <h3>Profile Photo</h3>
-          <p className="muted">For demo, photo is saved in localStorage.</p>
 
           <div className="profile-photo">
-            {photo ? <img src={photo} alt="profile" /> : <div className="photo-empty">No Photo</div>}
+            {photo ? (
+              <img src={photo} alt="profile" />
+            ) : (
+              <div className="photo-empty">No Photo</div>
+            )}
           </div>
 
           <input type="file" accept="image/*" onChange={onPhotoChange} />
         </div>
 
+        {/* RIGHT PANEL */}
         <div className="dash-panel">
           <h3>Details</h3>
 
           <div className="form-grid">
-            <label>
-              Name
-              <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" />
-            </label>
-
-            <label>
-              Email
-              <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="name@email.com" />
-            </label>
-
-            <label>
-              Department
-              <input value={dept} onChange={(e) => setDept(e.target.value)} placeholder="IT / Admin / Lab" />
-            </label>
+            <input value={name} onChange={(e) => setName(e.target.value)} />
+            <input value={email} onChange={(e) => setEmail(e.target.value)} />
+            <input value={dept} onChange={(e) => setDept(e.target.value)} />
           </div>
 
           <div className="dash-actions">
-            <button className="dash-action-btn blue" onClick={save}>Save Profile</button>
+
+            <button className="dash-action-btn blue" onClick={save}>
+              Save Profile
+            </button>
+
+            {/* DELETE FOR ALL */}
+            <button className="dash-action-btn red" onClick={deleteAccount}>
+              Delete Account
+            </button>
+
+            {/* TECHNICIAN ONLY */}
+            {user.role === "technician" && (
+              <button className="dash-action-btn orange" onClick={deactivate}>
+                Deactivate Account
+              </button>
+            )}
+
           </div>
         </div>
       </div>

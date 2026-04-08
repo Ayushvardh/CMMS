@@ -10,6 +10,8 @@ import Signup from "./pages/signup.jsx";
 import ReportIssue from "./pages/ReportIssue.jsx";
 import WorkOrders from "./pages/WorkOrders.jsx";
 import Notification from "./pages/Notification.jsx";
+import ForgotPassword from "./pages/ForgotPassword";
+
 
 import Dashboard from "./pages/Dashboard.jsx";
 import Profile from "./pages/Profile.jsx";
@@ -446,6 +448,7 @@ export default function App() {
         
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+       <Route path="/forgot-password" element={<ForgotPassword />} />
 
       <Route path="*" element={<div style={{ padding: 30 }}>Page not found</div>} />
     </Routes>

@@ -3,7 +3,20 @@
   padding: 30px;
   margin: 0 auto;
 }
+.dash-action-btn {
+  display: block !important;
+  margin-top: 10px;
+}
 
+.red {
+  background: #ff4d4f;
+  color: white;
+}
+
+.orange {
+  background: orange;
+  color: white;
+}
 .dash-top {
   display: flex;
   align-items: flex-start;
@@ -337,7 +350,12 @@
   align-items: center;
   gap: 10px;
 }
-
+.profile-photo img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+}
 /* FIX ID COLUMN */
 .table .trow div:first-child {
   overflow: hidden;
