@@ -3,11 +3,22 @@ import React, { useEffect, useState } from "react";
 export default function AdminWorkOrders() {
   const [orders, setOrders] = useState([]);
   const [editedOrders, setEditedOrders] = useState({});
+  const [technicians, setTechnicians] = useState([]); // NEW
 
   useEffect(() => {
     fetch("http://localhost:5000/api/issues")
       .then((res) => res.json())
       .then((data) => setOrders(data));
+  }, []);
+
+  // NEW: fetch technicians
+  useEffect(() => {
+    fetch("http://localhost:5000/api/auth/users?role=technician")
+      .then((res) => res.json())
+      .then((data) => {
+      console.log("TECHNICIANS:", data); // 👈 ADD THIS
+      setTechnicians(data);
+    });
   }, []);
 
   // handle dropdown changes (NO API call yet)
@@ -23,33 +34,33 @@ export default function AdminWorkOrders() {
 
   // SAVE button → updates DB
   const saveChanges = async (id) => {
-  const updates = editedOrders[id];
-  if (!updates) return;
+    const updates = editedOrders[id];
+    if (!updates) return;
 
-  const res = await fetch(`http://localhost:5000/api/issues/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(updates),
-  });
+    const res = await fetch(`http://localhost:5000/api/issues/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    });
 
-  if (res.ok) {
-    alert("✅ Saved successfully!");
-  } else {
-    alert("❌ Failed to save");
-  }
+    if (res.ok) {
+      alert("✅ Saved successfully!");
+    } else {
+      alert("❌ Failed to save");
+    }
 
-  setOrders((prev) =>
-    prev.map((o) =>
-      o._id === id ? { ...o, ...updates } : o
-    )
-  );
+    setOrders((prev) =>
+      prev.map((o) =>
+        o._id === id ? { ...o, ...updates } : o
+      )
+    );
 
-  setEditedOrders((prev) => {
-    const copy = { ...prev };
-    delete copy[id];
-    return copy;
-  });
-};
+    setEditedOrders((prev) => {
+      const copy = { ...prev };
+      delete copy[id];
+      return copy;
+    });
+  };
 
   return (
     <div className="workorders-container">
@@ -62,6 +73,7 @@ export default function AdminWorkOrders() {
               <th>ID</th>
               <th>Computer</th>
               <th>Issue</th>
+              <th>Reported By</th> {/* NEW */}
               <th>Technician</th>
               <th>Status</th>
               <th>Priority</th>
@@ -76,6 +88,9 @@ export default function AdminWorkOrders() {
                 <td>{o._id.slice(-5)}</td>
                 <td>{o.computerId}</td>
                 <td>{o.issueType}</td>
+
+                {/* NEW: Reported By */}
+                <td>{o.reportedBy?.username || "Unknown"}</td>
 
                 {/* Technician */}
                 <td>
@@ -93,8 +108,16 @@ export default function AdminWorkOrders() {
                       )
                     }
                   >
-                    <option>Unassigned</option>
-                    <option value="tech">tech</option>
+                    <option value="Unassigned">Unassigned</option>
+                    
+
+                    {technicians.map((tech) => (
+                      <option key={tech._id} value={tech.username}>
+                        {tech.username}
+                      </option>
+                    ))}
+
+                    <option value="all">All Technicians</option>
                   </select>
                 </td>
 

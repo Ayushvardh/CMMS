@@ -31,6 +31,9 @@ function Login() {
 
         localStorage.setItem("cmms_user", JSON.stringify(user));
 
+        // 👇 NEW LINE ADDED
+        localStorage.setItem("userId", user._id);
+
         // ✅ use navigate (NOT window.location)
         if (user.role === "admin") {
           navigate("/admin");

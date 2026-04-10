@@ -41,7 +41,7 @@ export default function AdminLanding() {
                     className="btn-blue"
                     onClick={() => navigate("/adminworkorders")}
                   >
-                    Manage Work Orders
+                    Assign Technician
                   </button>
 
                   <button

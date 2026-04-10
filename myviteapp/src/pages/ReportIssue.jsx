@@ -60,6 +60,8 @@ export default function ReportIssue() {
   if (Object.keys(errs).length > 0) return;
 
   try {
+    const userId = localStorage.getItem("userId"); // ✅ added
+
     const res = await fetch("http://localhost:5000/api/issues", {
       method: "POST",
       headers: {
@@ -71,12 +73,11 @@ export default function ReportIssue() {
         issueType,
         description: comment,
         priority: "Medium",
-        assignedTo: "tech"
-        //assignedTo: Math.random() > 0.5 ? "tech1" : "tech2"
+        assignedTo: "tech",
+        reportedBy: userId, // ✅ added
       }),
     });
 
-    // 🔥 IMPORTANT CHECK
     if (!res.ok) {
       throw new Error("Server error");
     }
@@ -86,9 +87,9 @@ export default function ReportIssue() {
     alert("✅ Issue reported successfully!");
 
     addNotification({
-  message: `Issue reported for ${computerId} (${issueType})`,
-  time: new Date().toLocaleString(),
-});
+      message: `Issue reported for ${computerId} (${issueType})`,
+      time: new Date().toLocaleString(),
+    });
 
     setComputerId("");
     setDepartment("");
