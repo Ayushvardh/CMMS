@@ -1,10 +1,32 @@
 import mongoose from "mongoose";
 
 const issueSchema = new mongoose.Schema({
-  computerId: String,
-  department: String,
-  issueType: String,
-  description: String,
+  computerId: {
+    type: String,
+    required: true,
+  },
+
+  department: {
+    type: String,
+    required: true,
+  },
+
+  issueType: {
+    type: String,
+    required: true,
+  },
+
+  description: {
+    type: String,
+    required: true,
+  },
+
+  // who reported the issue
+  reportedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true, // 👈 important
+  },
 
   status: {
     type: String,

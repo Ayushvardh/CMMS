@@ -3,7 +3,6 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
-
 // ✅ SIGNUP
 router.post("/signup", async (req, res) => {
   try {
@@ -23,7 +22,6 @@ router.post("/signup", async (req, res) => {
     res.status(500).json({ message: "Error signing up" });
   }
 });
-
 
 // ✅ LOGIN
 router.post("/login", async (req, res) => {
@@ -49,7 +47,6 @@ router.post("/login", async (req, res) => {
   }
 });
 
-
 // ✅ FORGOT PASSWORD
 router.post("/forgot-password", async (req, res) => {
   try {
@@ -71,13 +68,26 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-
 // ✅ GET PROFILE
 router.get("/profile/:id", async (req, res) => {
   const user = await User.findById(req.params.id);
   res.json(user);
 });
 
+// ✅ GET USERS (WITH ROLE FILTER) 🔥 IMPORTANT
+router.get("/users", async (req, res) => {
+  try {
+    const role = req.query.role;
+
+    const users = await User.find(
+      role ? { role } : {}
+    ).select("-password"); // 👈 ONLY CHANGE
+
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ✅ UPDATE PROFILE
 router.put("/profile/:id", async (req, res) => {
@@ -89,13 +99,11 @@ router.put("/profile/:id", async (req, res) => {
   res.json(updated);
 });
 
-
 // ✅ DELETE
 router.delete("/profile/:id", async (req, res) => {
   await User.findByIdAndDelete(req.params.id);
   res.json({ message: "Deleted" });
 });
-
 
 // ✅ DEACTIVATE
 router.put("/profile/:id/deactivate", async (req, res) => {

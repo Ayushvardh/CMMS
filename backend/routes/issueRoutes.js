@@ -6,14 +6,42 @@ const router = express.Router();
 
 // CREATE ISSUE
 router.post("/", async (req, res) => {
-  const issue = new Issue(req.body);
-  await issue.save();
-  res.json(issue);
+  try {
+    const {
+      computerId,
+      department,
+      issueType,
+      description,
+      priority,
+      assignedTo,
+      reportedBy
+    } = req.body;
+
+    const issue = new Issue({
+      computerId,
+      department,
+      issueType,
+      description,
+      priority,
+      assignedTo,
+      reportedBy, // 🔥 FORCE SAVE
+    });
+
+    await issue.save();
+
+    res.json(issue);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to create issue" });
+  }
 });
 
 // GET ALL ISSUES
 router.get("/", async (req, res) => {
-  const issues = await Issue.find().sort({ createdAt: -1 });
+  const issues = await Issue.find()
+    .populate("reportedBy", "username") // ✅ ONLY CHANGE
+    .sort({ createdAt: -1 });
+
   res.json(issues);
 });
 
